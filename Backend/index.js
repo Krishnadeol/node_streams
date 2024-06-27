@@ -2,8 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const { Transform } = require("stream");
-const { Readable } = require("stream");
+const { Transform, Readable } = require("stream");
 
 const app = express();
 const PORT = 3001;
@@ -17,7 +16,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-const CHUNK_SIZE = 5000 * 1024;
+const CHUNK_SIZE = 5000 * 1024; // 5 MB
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -56,7 +55,6 @@ app.post("/upload", upload.single("file"), (req, res) => {
   const transformStream = new Transform({
     transform(chunk, encoding, callback) {
       try {
-        // Process the chunk
         while (currentSize + chunk.length > CHUNK_SIZE) {
           const remainingSpace = CHUNK_SIZE - currentSize;
           const firstChunk = chunk.slice(0, remainingSpace);
@@ -68,7 +66,7 @@ app.post("/upload", upload.single("file"), (req, res) => {
             currentSize = 0;
           });
 
-          currentSize = chunk.length;
+          currentSize = chunk.length; // reset currentSize
         }
 
         currentStream.write(chunk, encoding, () => {
